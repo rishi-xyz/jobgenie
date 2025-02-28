@@ -1,0 +1,41 @@
+export const plans = [
+    {
+        name: "Starter",
+        price: "$19",
+        period: "per month",
+        description: "Perfect for job seekers",
+        features: ["AI Resume Builder", "Basic Interview Preparation", "Career Path Recommendations", "Email Support"],
+        cta: "Get Started",
+        popular: false,
+    },
+    {
+        name: "Professional",
+        price: "$49",
+        period: "per month",
+        description: "For career advancement",
+        features: [
+            "Everything in Starter",
+            "Advanced Interview Coaching",
+            "Personalized Career Roadmap",
+            "Salary Negotiation Tips",
+            "Priority Support",
+        ],
+        cta: "Start Free Trial",
+        popular: true,
+    },
+    {
+        name: "Enterprise",
+        price: "$99",
+        period: "per month",
+        description: "For teams and organizations",
+        features: [
+            "Everything in Professional",
+            "Team Management Dashboard",
+            "Custom Industry Reports",
+            "API Access",
+            "Dedicated Account Manager",
+        ],
+        cta: "Contact Sales",
+        popular: false,
+    },
+]
