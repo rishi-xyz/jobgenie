@@ -113,6 +113,12 @@ export default function ResumeBuilder({ initialContent, user }: { initialContent
     const generatePDF = async () => {
         setIsGenerating(true);
         try {
+            // Get the existing preview element
+            const previewElement = document.querySelector('.w-md-editor-preview');
+            if (!previewElement) {
+                throw new Error('Preview element not found');
+            }
+
             // Create a temporary container for PDF generation
             const tempContainer = document.createElement('div');
             tempContainer.style.position = 'absolute';
@@ -126,28 +132,23 @@ export default function ResumeBuilder({ initialContent, user }: { initialContent
             tempContainer.style.fontSize = '12pt';
             tempContainer.style.lineHeight = '1.5';
             
-            // Get the markdown content
-            const markdownContent = previewContent;
+            // Clone the preview content and remove any problematic styles
+            const content = previewElement.innerHTML;
+            tempContainer.innerHTML = content;
             
-            // Create a temporary div to render the markdown
-            const renderContainer = document.createElement('div');
-            renderContainer.style.display = 'none';
-            document.body.appendChild(renderContainer);
-            
-            // Use MDEditor's preview component to render markdown
-            const root = document.createElement('div');
-            root.className = 'wmde-markdown-var';
-            renderContainer.appendChild(root);
-            
-            // Render the markdown content
-            const markdownElement = document.getElementById('resume-pdf');
-            if (!markdownElement) {
-                throw new Error('Resume preview element not found');
+            // Remove any gradient or modern CSS color functions
+            const elements = tempContainer.getElementsByTagName('*');
+            for (let element of elements) {
+                const htmlElement = element as HTMLElement;
+                const style = window.getComputedStyle(htmlElement);
+                if (style.background.includes('gradient') || style.background.includes('oklch')) {
+                    htmlElement.style.background = '#ffffff';
+                }
+                if (style.color.includes('oklch')) {
+                    htmlElement.style.color = '#000000';
+                }
             }
             
-            // Clone the content to avoid modifying the original
-            const content = markdownElement.innerHTML;
-            tempContainer.innerHTML = content;
             document.body.appendChild(tempContainer);
 
             const canvas = await html2canvas(tempContainer, {
@@ -160,7 +161,6 @@ export default function ResumeBuilder({ initialContent, user }: { initialContent
                 foreignObjectRendering: true,
                 imageTimeout: 0,
                 onclone: (clonedDoc) => {
-                    // Apply additional styling to the cloned document
                     const clonedContainer = clonedDoc.querySelector('div');
                     if (clonedContainer) {
                         clonedContainer.style.width = '210mm';
@@ -170,13 +170,25 @@ export default function ResumeBuilder({ initialContent, user }: { initialContent
                         clonedContainer.style.fontFamily = 'Arial, sans-serif';
                         clonedContainer.style.fontSize = '12pt';
                         clonedContainer.style.lineHeight = '1.5';
+                        
+                        // Remove any gradient or modern CSS color functions in the cloned document
+                        const clonedElements = clonedContainer.getElementsByTagName('*');
+                        for (let element of clonedElements) {
+                            const htmlElement = element as HTMLElement;
+                            const style = window.getComputedStyle(htmlElement);
+                            if (style.background.includes('gradient') || style.background.includes('oklch')) {
+                                htmlElement.style.background = '#ffffff';
+                            }
+                            if (style.color.includes('oklch')) {
+                                htmlElement.style.color = '#000000';
+                            }
+                        }
                     }
                 }
             });
 
             // Clean up
             document.body.removeChild(tempContainer);
-            document.body.removeChild(renderContainer);
 
             const imgData = canvas.toDataURL('image/jpeg', 0.98);
 
@@ -204,17 +216,18 @@ export default function ResumeBuilder({ initialContent, user }: { initialContent
             const formattedContent = previewContent
                 .replace(/\n/g, "\n") // Normalize newlines
                 .replace(/\n\s*\n/g, "\n\n") // Normalize multiple newlines to double newlines
-                .replace(/U0001f4e7/g, "📧") // Replace Unicode codes with emojis
-                .replace(/U0001f4f1/g, "📱")
-                .replace(/U0001f4bc/g, "💼")
-                .replace(/U0001f426/g, "🐦")
+                .replace(/\u{1F4E7}/gu, "📧") // Fix emoji replacement
+                .replace(/\u{1F4F1}/gu, "📱")
+                .replace(/\u{1F4BC}/gu, "💼")
+                .replace(/\u{1F426}/gu, "🐦")
                 .trim();
-
+    
             await saveResumeFn(formattedContent);
         } catch (error) {
             console.error("Save error:", error);
         }
     };
+    
 
     return (
         <div data-color-mode="light" className="space-y-4">
@@ -240,7 +253,7 @@ export default function ResumeBuilder({ initialContent, user }: { initialContent
                             </>
                         )}
                     </Button>
-                    <Button onClick={generatePDF} disabled={isGenerating}>
+                    {/* <Button onClick={generatePDF} disabled={isGenerating}>
                         {isGenerating ? (
                             <>
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -252,7 +265,7 @@ export default function ResumeBuilder({ initialContent, user }: { initialContent
                                 Download PDF
                             </>
                         )}
-                    </Button>
+                    </Button> */}
                 </div>
             </div>
 
