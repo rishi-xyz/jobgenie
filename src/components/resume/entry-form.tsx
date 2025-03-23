@@ -22,8 +22,24 @@ import useFetch from "@/src/hooks/use-fetch";
 
 const formatDisplayDate = (dateString: string) => {
     if (!dateString) return "";
-    const date = parse(dateString, "yyyy-MM", new Date());
-    return format(date, "MMM yyyy");
+    try {
+        // First try to parse as yyyy-MM
+        const date = parse(dateString, "yyyy-MM", new Date());
+        return format(date, "MMM yyyy");
+    } catch (error) {
+        try {
+            // If that fails, try to parse as a regular date
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                console.error("Invalid date:", dateString);
+                return dateString;
+            }
+            return format(date, "MMM yyyy");
+        } catch (error) {
+            console.error("Error formatting date:", error);
+            return dateString;
+        }
+    }
 };
 
 export const EntryForm = ({
@@ -73,16 +89,20 @@ export const EntryForm = ({
     const current = watch("current");
 
     const handleAdd = handleValidation((data) => {
-        const formattedEntry = {
-            ...data,
-            startDate: formatDisplayDate(data.startDate),
-            endDate: data.current ? "" : formatDisplayDate(data.endDate!),
-        };
+        try {
+            const formattedEntry = {
+                ...data,
+                startDate: data.startDate ? formatDisplayDate(data.startDate) : "",
+                endDate: data.current ? "" : (data.endDate ? formatDisplayDate(data.endDate) : ""),
+            };
 
-        onChange([...entries, formattedEntry]);
-
-        reset();
-        setIsAdding(false);
+            onChange([...entries, formattedEntry]);
+            reset();
+            setIsAdding(false);
+        } catch (error) {
+            console.error("Error adding entry:", error);
+            toast.error("Failed to add entry. Please try again.");
+        }
     });
 
     const handleDelete = (index:number) => {

@@ -26,10 +26,9 @@ import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas"
 import { onAuthenticatedUser } from "@/src/actions/auth";
 
-export default async function ResumeBuilder({ initialContent }: { initialContent: string }) {
+export default function ResumeBuilder({ initialContent, user }: { initialContent: string, user: any }) {
     const [activeTab, setActiveTab] = useState("edit");
     const [previewContent, setPreviewContent] = useState(initialContent);
-    const auth = await onAuthenticatedUser();
     const [resumeMode, setResumeMode] = useState<PreviewType>("preview");
     const [isGenerating, setIsGenerating] = useState(false);
 
@@ -86,57 +85,115 @@ export default async function ResumeBuilder({ initialContent }: { initialContent
     const getContactMarkdown = () => {
         const { contactInfo } = formValues;
         const parts = [];
-        if (contactInfo.email) parts.push(`\U0001f4e7 ${contactInfo.email}`);
-        if (contactInfo.mobile) parts.push(`\U0001f4f1 ${contactInfo.mobile}`);
+        if (contactInfo.email) parts.push(`📧 ${contactInfo.email}`);
+        if (contactInfo.mobile) parts.push(`📱 ${contactInfo.mobile}`);
         if (contactInfo.linkedin)
-            parts.push(`\U0001f4bc [LinkedIn](${contactInfo.linkedin})`);
-        if (contactInfo.twitter) parts.push(`\U0001f426 [Twitter](${contactInfo.twitter})`);
+            parts.push(`💼 [LinkedIn](${contactInfo.linkedin})`);
+        if (contactInfo.twitter) parts.push(`🐦 [Twitter](${contactInfo.twitter})`);
 
         return parts.length > 0
-            ? `## <div align="center">${auth.user?.name}</div>
-        \n\n<div align="center">\n\n${parts.join(" | ")}\n\n</div>`
+            ? `## <div align="center">${user?.name}</div>\n\n<div align="center">\n\n${parts.join(" | ")}\n\n</div>`
             : "";
     };
 
     const getCombinedContent = () => {
         const { summary, skills, experience, education, projects } = formValues;
-        return [
+        const sections = [
             getContactMarkdown(),
             summary && `## Professional Summary\n\n${summary}`,
             skills && `## Skills\n\n${skills}`,
             entriesToMarkdown(experience, "Work Experience"),
             entriesToMarkdown(education, "Education"),
             entriesToMarkdown(projects, "Projects"),
-        ]
-            .filter(Boolean)
-            .join("\n\n");
+        ].filter(Boolean);
+
+        return sections.join("\n\n");
     };
 
     const generatePDF = async () => {
         setIsGenerating(true);
         try {
-            const element = document.getElementById("resume-pdf");
-
-            if (!element) {
-                throw new Error("Resume element not found");
+            // Create a temporary container for PDF generation
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '-9999px';
+            tempContainer.style.width = '210mm'; // A4 width
+            tempContainer.style.padding = '20mm';
+            tempContainer.style.backgroundColor = '#ffffff';
+            tempContainer.style.color = '#000000';
+            tempContainer.style.fontFamily = 'Arial, sans-serif';
+            tempContainer.style.fontSize = '12pt';
+            tempContainer.style.lineHeight = '1.5';
+            
+            // Get the markdown content
+            const markdownContent = previewContent;
+            
+            // Create a temporary div to render the markdown
+            const renderContainer = document.createElement('div');
+            renderContainer.style.display = 'none';
+            document.body.appendChild(renderContainer);
+            
+            // Use MDEditor's preview component to render markdown
+            const root = document.createElement('div');
+            root.className = 'wmde-markdown-var';
+            renderContainer.appendChild(root);
+            
+            // Render the markdown content
+            const markdownElement = document.getElementById('resume-pdf');
+            if (!markdownElement) {
+                throw new Error('Resume preview element not found');
             }
+            
+            // Clone the content to avoid modifying the original
+            const content = markdownElement.innerHTML;
+            tempContainer.innerHTML = content;
+            document.body.appendChild(tempContainer);
 
-            const canvas = await html2canvas(element, { scale: 2 });
-            const imgData = canvas.toDataURL("image/jpeg", 0.98);
+            const canvas = await html2canvas(tempContainer, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                logging: false,
+                removeContainer: true,
+                allowTaint: true,
+                foreignObjectRendering: true,
+                imageTimeout: 0,
+                onclone: (clonedDoc) => {
+                    // Apply additional styling to the cloned document
+                    const clonedContainer = clonedDoc.querySelector('div');
+                    if (clonedContainer) {
+                        clonedContainer.style.width = '210mm';
+                        clonedContainer.style.padding = '20mm';
+                        clonedContainer.style.backgroundColor = '#ffffff';
+                        clonedContainer.style.color = '#000000';
+                        clonedContainer.style.fontFamily = 'Arial, sans-serif';
+                        clonedContainer.style.fontSize = '12pt';
+                        clonedContainer.style.lineHeight = '1.5';
+                    }
+                }
+            });
+
+            // Clean up
+            document.body.removeChild(tempContainer);
+            document.body.removeChild(renderContainer);
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.98);
 
             const pdf = new jsPDF({
-                orientation: "portrait",
-                unit: "mm",
-                format: "a4",
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
             });
 
             const imgWidth = 210; // A4 width in mm
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-            pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
-            pdf.save("resume.pdf");
+            pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+            pdf.save('resume.pdf');
         } catch (error) {
-            console.error("PDF generation error:", error);
+            console.error('PDF generation error:', error);
+            toast.error('Failed to generate PDF. Please try again.');
         } finally {
             setIsGenerating(false);
         }
@@ -147,10 +204,13 @@ export default async function ResumeBuilder({ initialContent }: { initialContent
             const formattedContent = previewContent
                 .replace(/\n/g, "\n") // Normalize newlines
                 .replace(/\n\s*\n/g, "\n\n") // Normalize multiple newlines to double newlines
+                .replace(/U0001f4e7/g, "📧") // Replace Unicode codes with emojis
+                .replace(/U0001f4f1/g, "📱")
+                .replace(/U0001f4bc/g, "💼")
+                .replace(/U0001f426/g, "🐦")
                 .trim();
 
-            console.log(previewContent, formattedContent);
-            await saveResumeFn(previewContent);
+            await saveResumeFn(formattedContent);
         } catch (error) {
             console.error("Save error:", error);
         }
@@ -409,12 +469,16 @@ export default async function ResumeBuilder({ initialContent }: { initialContent
                         />
                     </div>
                     <div className="hidden">
-                        <div id="resume-pdf">
+                        <div id="resume-pdf" className="bg-white">
                             <MDEditor.Markdown
                                 source={previewContent}
                                 style={{
-                                    background: "white",
-                                    color: "black",
+                                    background: '#ffffff',
+                                    color: '#000000',
+                                    padding: '20px',
+                                    fontFamily: 'Arial, sans-serif',
+                                    fontSize: '12pt',
+                                    lineHeight: '1.5',
                                 }}
                             />
                         </div>

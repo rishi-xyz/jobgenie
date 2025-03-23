@@ -7,7 +7,7 @@ type EntryProps = {
     current: boolean;
 };
 
-export function entriesToMarkdown(entries:EntryProps[], type: string) {
+export function entriesToMarkdown(entries: EntryProps[], type: string) {
     if (!entries?.length) return "";
 
     return (
@@ -17,7 +17,7 @@ export function entriesToMarkdown(entries:EntryProps[], type: string) {
                 const dateRange = entry.current
                     ? `${entry.startDate} - Present`
                     : `${entry.startDate} - ${entry.endDate}`;
-                return `### ${entry.title} @ ${entry.organization}\n${dateRange}\n\n${entry.description}`;
+                return `### ${entry.title} @ ${entry.organization}\n\n*${dateRange}*\n\n${entry.description.replace(/\n/g, '\n\n')}`;
             })
             .join("\n\n")
     );
