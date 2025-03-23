@@ -58,6 +58,10 @@ NEXTAUTH_SECRET=your_secret_here
 NEXTAUTH_URL=http://localhost:3000
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_SECRET=your_github_client_secret
+DATABASE_URL=your_databse_url
+GEMINI_API_KEY=your_gemini_api_key
 ```
 
 4. Set up the database:
