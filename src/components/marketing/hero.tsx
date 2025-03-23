@@ -2,6 +2,7 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import Heroimg from "@/public/heroimg.png"
+import Link from "next/link";
 
 export const MarketingHero = () => {
     return (
@@ -22,11 +23,13 @@ export const MarketingHero = () => {
                             help you achieve your career goals.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
-                            <Button size="lg" className="group">
-                                Get Started Free
-                                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                            </Button>
-                            <Button size="lg" variant="outline">
+                            <Link href={"/dashboard"}>
+                                <Button size="lg" className="group cursor-pointer">
+                                    Get Started Free
+                                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                </Button>
+                            </Link>
+                            <Button size="lg" variant="outline" className="cursor-pointer">
                                 See How It Works
                             </Button>
                         </div>

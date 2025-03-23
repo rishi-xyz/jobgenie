@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "../ui/button";
 import { useEffect, useState } from "react";
 import { ThemeSwitcher } from "../globals/themeSwitcher";
+import { redirect } from "next/navigation";
 
 export const MarketingHeader = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -51,10 +52,12 @@ export const MarketingHeader = () => {
                         <Link href="#contact" className="text-sm font-medium hover:text-orange-600 transition-colors">
                             Contact
                         </Link>
-                        <Button variant="outline" className="ml-4">
+                        <Button variant="outline" className="ml-4" onClick={()=>redirect("/dashboard")}>
                             Log in
                         </Button>
-                        <Button>Sign up</Button>
+                        <Button onClick={()=>redirect("/sign-in")}>
+                            Sign up
+                        </Button>
                         <ThemeSwitcher />
                     </nav>
 

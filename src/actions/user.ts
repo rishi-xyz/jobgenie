@@ -72,7 +72,9 @@ export async function updateUser(data: User) {
 
 export async function getUserOnboardingStatus() {
     const auth = await onAuthenticatedUser();
-    if (!auth.user) throw new Error("Not Authenticated");
+    if (!auth.user){
+        redirect("/sign-in")
+    } 
 
     const user = await client.user.findUnique({
         where: { authUserId: auth.user.email },

@@ -39,7 +39,7 @@ export const MarketingPricing = () => {
                                 ))}
                             </ul>
                             <Button
-                                className={`w-full ${plan.popular ? "" : "bg-card hover:bg-card/80 text-card-foreground"}`}
+                                className={`w-full cursor-pointer ${plan.popular ? "" : "bg-card hover:bg-card/80 text-card-foreground"}`}
                                 variant={plan.popular ? "default" : "outline"}
                             >
                                 {plan.cta}

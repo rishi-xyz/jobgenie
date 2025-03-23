@@ -1,3 +1,5 @@
+import Header from "@/src/components/globals/header";
+import Providers from "@/src/provider/session-provider";
 import React from "react";
 
 type PlatformLayoutProps = {
@@ -6,9 +8,12 @@ type PlatformLayoutProps = {
 
 const PlatformLayout = async ({ children }: PlatformLayoutProps) => {
     return (
-        <div className="container mx-auto mt-24 mb-20">
-            {children}
-        </div>
+        <Providers>
+            <Header />
+            <div className="container mx-auto mt-24 mb-20">
+                {children}
+            </div>
+        </Providers>
     );
 };
 
