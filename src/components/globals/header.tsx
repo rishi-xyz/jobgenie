@@ -16,7 +16,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/src/components/ui/dropdown-menu";
-import Image from "next/image";
 
 export default async function Header() {
     return (

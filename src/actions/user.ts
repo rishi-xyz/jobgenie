@@ -4,11 +4,12 @@ import { revalidatePath } from "next/cache";
 
 import { client } from "@/src/lib/prisma";
 import { onAuthenticatedUser } from "./auth";
-import { generateAIInsights } from "./dashboard";
 import { User } from "@prisma/client";
 import { redirect } from "next/navigation";
 
-export async function updateUser(data: User) {
+type UpdateUserData = Partial<Pick<User, 'industry' | 'experience' | 'bio' | 'skills'>>;
+
+export async function updateUser(data: UpdateUserData) {
     const auth = await onAuthenticatedUser();
     if (!auth.user) redirect("/sign-in")
 
@@ -23,30 +24,26 @@ export async function updateUser(data: User) {
         const result = await client.$transaction(
             async (tx) => {
                 // First check if industry exists
-                let industryInsight = await tx.industryInsight.findUnique({
+                const industryInsight = await tx.industryInsight.findUnique({
                     where: {
                         industry: data.industry!,
                     },
                 });
 
-                // If industry doesn't exist, create it with default values
                 if (!industryInsight) {
-                    const insights = await generateAIInsights(data.industry!);
-
-                    industryInsight = await client.industryInsight.create({
+                    await tx.industryInsight.create({
                         data: {
-                            industry: data.industry,
-                            ...insights,
-                            nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                            industry: data.industry!,
+                            growthRate: 0,
+                            demandLevel: "0",
+                            marketOutlook: "0",
+                            nextUpdate: new Date(),
                         },
                     });
                 }
-
-                // Now update the user
+                // Update the user with the new data
                 const updatedUser = await tx.user.update({
-                    where: {
-                        id: user.id,
-                    },
+                    where: { id: user.id },
                     data: {
                         industry: data.industry,
                         experience: data.experience,
@@ -55,7 +52,7 @@ export async function updateUser(data: User) {
                     },
                 });
 
-                return { updatedUser, industryInsight };
+                return { updatedUser };
             },
             {
                 timeout: 10000, // default: 5000
@@ -64,8 +61,8 @@ export async function updateUser(data: User) {
 
         revalidatePath("/");
         return result.updatedUser;
-    } catch (error: any) {
-        console.error("Error updating user and industry:", error.message);
+    } catch (error: unknown) {
+        console.error("Error updating user and industry:", error instanceof Error ? error.message : String(error));
         throw new Error("Failed to update profile");
     }
 }

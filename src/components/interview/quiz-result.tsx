@@ -24,7 +24,7 @@ type SelectedQuizProps = {
     improvementTip: string | null;
 } | null;
 
-export default async function QuizResult({
+export default function QuizResult({
     result,
     hideStartNew = false,
     onStartNew,

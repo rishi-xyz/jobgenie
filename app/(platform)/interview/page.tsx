@@ -3,6 +3,8 @@ import StatsCards from "@/src/components/interview/stats-card";
 import PerformanceChart from "@/src/components/interview/performance-card";
 import QuizList from "@/src/components/interview/quiz-list";
 
+export const dynamic = 'force-dynamic';
+
 export default async function InterviewPrepPage() {
     const assessments = await getAssessments();
 

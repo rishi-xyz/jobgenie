@@ -15,7 +15,7 @@ import {
     CardTitle,
 } from "@/src/components/ui/card";
 import { entrySchema } from "@/src/lib/schema";
-import { Sparkles, PlusCircle, X, Pencil, Save, Loader2 } from "lucide-react";
+import { Sparkles, PlusCircle, X, Loader2 } from "lucide-react";
 import { improveWithAI } from "@/src/actions/resume";
 import { toast } from "sonner";
 import useFetch from "@/src/hooks/use-fetch";
@@ -39,6 +39,7 @@ const formatDisplayDate = (dateString: string) => {
             console.error("Error formatting date:", error);
             return dateString;
         }
+        console.error("Error parsing date",error)
     }
 };
 

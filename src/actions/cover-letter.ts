@@ -65,8 +65,8 @@ export async function generateCoverLetter(data: CoverLetterData) {
     });
 
     return coverLetter;
-  } catch (error: any) {
-    console.error("Error generating cover letter:", error.message);
+  } catch (error: unknown) {
+    console.error("Error generating cover letter:", error instanceof Error ? error.message : String(error));
     throw new Error("Failed to generate cover letter");
   }
 }

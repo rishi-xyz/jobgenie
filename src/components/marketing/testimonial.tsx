@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 import { testimonials } from "@/src/lib/testimonials";
 import { Star } from "lucide-react";
 

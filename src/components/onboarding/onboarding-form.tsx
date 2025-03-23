@@ -29,12 +29,15 @@ import {
 import useFetch from "@/src/hooks/use-fetch";
 import { onboardingSchema } from "@/src/lib/schema";
 import { updateUser } from "@/src/actions/user";
+import { z } from "zod";
 
 type IndustryProps = {
   id: string;
   name: string;
   subIndustries: string[];
 };
+
+type OnboardingFormData = z.infer<typeof onboardingSchema>;
 
 const OnboardingForm = ({ industries }: { industries: IndustryProps[] }) => {
   const router = useRouter();
@@ -52,22 +55,25 @@ const OnboardingForm = ({ industries }: { industries: IndustryProps[] }) => {
     formState: { errors },
     setValue,
     watch,
-  } = useForm({
+  } = useForm<OnboardingFormData>({
     resolver: zodResolver(onboardingSchema),
   });
 
-  const onSubmit = async (values: any) => {
+  const onSubmit = async (values: OnboardingFormData) => {
     try {
       const formattedIndustry = `${values.industry}-${values.subIndustry
         .toLowerCase()
         .replace(/ /g, "-")}`;
 
       await updateUserFn({
-        ...values,
         industry: formattedIndustry || null,
+        experience: values.experience,
+        bio: values.bio || null,
+        skills: values.skills || [],
       });
     } catch (error) {
       console.error("Onboarding error:", error);
+      toast.error("Failed to update profile");
     }
   };
 
@@ -75,9 +81,8 @@ const OnboardingForm = ({ industries }: { industries: IndustryProps[] }) => {
     if (updateResult && !updateLoading) {
       toast.success("Profile completed successfully!");
       router.push("/dashboard");
-      router.refresh();
     }
-  }, [updateResult, updateLoading]);
+  }, [updateResult, updateLoading, router]);
 
   const watchIndustry = watch("industry");
 

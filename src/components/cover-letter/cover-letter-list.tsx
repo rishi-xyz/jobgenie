@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Edit2, Eye, Trash2 } from "lucide-react";
+import {  Eye, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Card,
@@ -21,20 +21,33 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/src/components/ui/alert-dialog";
 import { deleteCoverLetter } from "@/src/actions/cover-letter";
+import { useState } from "react";
 
-export default function CoverLetterList({ coverLetters }: { coverLetters: any }) {
+interface CoverLetter {
+  id: string;
+  jobTitle: string;
+  companyName: string;
+  createdAt: Date;
+  updatedAt: Date;
+  content: string;
+  jobDescription: string | null;
+  status: string;
+  userId: string;
+}
+
+export default function CoverLetterList({ coverLetters }: { coverLetters: CoverLetter[] }) {
   const router = useRouter();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const handleDelete = async (id: string) => {
     try {
       await deleteCoverLetter(id);
-      toast.success("Cover letter deleted successfully!");
+      toast.success("Cover letter deleted successfully");
       router.refresh();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to delete cover letter");
+    } catch (error: unknown) {
+      toast.error("Failed to delete cover letter",error!);
     }
   };
 
@@ -52,63 +65,58 @@ export default function CoverLetterList({ coverLetters }: { coverLetters: any })
   }
 
   return (
-    <div className="space-y-4">
-      {coverLetters.map((letter: any) => (
-        <Card key={letter.id} className="group relative ">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {coverLetters.map((coverLetter) => (
+        <Card key={coverLetter.id}>
           <CardHeader>
-            <div className="flex items-start justify-between">
-              <div>
-                <CardTitle className="text-xl gradient-title">
-                  {letter.jobTitle} at {letter.companyName}
-                </CardTitle>
-                <CardDescription>
-                  Created {format(new Date(letter.createdAt), "PPP")}
-                </CardDescription>
-              </div>
-              <div className="flex space-x-2">
-                <AlertDialog>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => router.push(`/ai-cover-letter/${letter.id}`)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="icon">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Cover Letter?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete your cover letter for {letter.jobTitle} at{" "}
-                        {letter.companyName}.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDelete(letter.id)}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </div>
+            <CardTitle>{coverLetter.jobTitle}</CardTitle>
+            <CardDescription>{coverLetter.companyName}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-muted-foreground text-sm line-clamp-3">
-              {letter.jobDescription}
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-muted-foreground">
+                Created {format(new Date(coverLetter.createdAt), "PPP")}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => router.push(`/ai-cover-letter/${coverLetter.id}`)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setDeleteId(coverLetter.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
       ))}
+
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your cover letter.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteId && handleDelete(deleteId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

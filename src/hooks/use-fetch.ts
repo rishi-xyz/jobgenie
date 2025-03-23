@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-const useFetch = <T, A extends any[]>(cb: (...args: A) => Promise<T>) => {
+const useFetch = <T, A extends unknown[]>(cb: (...args: A) => Promise<T>) => {
     const [data, setData] = useState<T | undefined>(undefined);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<Error | null>(null);
@@ -13,9 +13,10 @@ const useFetch = <T, A extends any[]>(cb: (...args: A) => Promise<T>) => {
         try {
             const response = await cb(...args);
             setData(response);
-        } catch (error: any) {
-            setError(error);
-            toast.error(error.message);
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            setError(new Error(errorMessage));
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }

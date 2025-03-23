@@ -1,4 +1,4 @@
-type EntryProps = {
+export type EntryProps = {
     title: string;
     organization: string;
     startDate: string;

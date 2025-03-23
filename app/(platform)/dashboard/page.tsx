@@ -4,6 +4,7 @@ import DashboardView from "@/src/components/dashboard/dashboard-view";
 import { getIndustryInsights } from "@/src/actions/dashboard";
 import { getUserOnboardingStatus } from "@/src/actions/user";
 
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
     const { isOnboarded } = await getUserOnboardingStatus();

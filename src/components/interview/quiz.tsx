@@ -128,8 +128,12 @@ export default function Quiz() {
       }));
       await saveQuizResultFn(transformedQuestions, answers.join(","), score);
       toast.success("Quiz completed!");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save quiz results");
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message || "Failed to save quiz results");
+      } else {
+        toast.error("Failed to save quiz results");
+      }
     }
   };
 

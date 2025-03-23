@@ -4,8 +4,12 @@ import { Button } from "@/src/components/ui/button";
 import { getCoverLetter } from "@/src/actions/cover-letter";
 import CoverLetterPreview from "@/src/components/cover-letter/cover-letter-preview";
 
-export default async function EditCoverLetterPage({ params }: { params: { id: string } }) {
-  const { id } = await  params;
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function EditCoverLetterPage({ params }: Props) {
+  const { id } = await params;
   const coverLetter = await getCoverLetter(id);
 
   return (
