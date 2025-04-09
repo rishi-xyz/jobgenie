@@ -31,14 +31,9 @@ export const generateAIInsights = async (industry: string) => {
         `;
 
     const result = await model.generateContent(prompt);
-    console.log("Result", result);
     const response = result.response;
-    console.log("Response", response);
     const text = response.text();
-    console.log("Response text", text);
     const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
-    console.log("Cleaned text", cleanedText);
-
     return JSON.parse(cleanedText);
 };
 
@@ -52,14 +47,11 @@ export async function getIndustryInsights() {
             industryInsight: true,
         },
     });
-    console.log("user:", user)
     if (!user) throw new Error("User not found");
 
     // If no insights exist, generate them
     if (!user.industryInsight?.salaryRanges || !user.industryInsight.topSkills || !user.industryInsight.growthRate || !user.industryInsight.demandLevel || !user.industryInsight.keyTrends || !user.industryInsight.industry || !user.industryInsight.marketOutlook || !user.industryInsight.recommendedSkills) {
         const insights = await generateAIInsights(user.industry!);
-        console.log("Generated Insights", insights)
-
         const industryInsight = await client.industryInsight.upsert({
             where: { industry: user.industry! },
             update: {

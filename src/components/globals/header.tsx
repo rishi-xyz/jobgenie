@@ -74,6 +74,15 @@ export default async function Header() {
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
+                    {/*Sign Out */}
+                    <Link href="/sign-out">
+                        <Button
+                            variant="outline"
+                            className="hidden md:inline-flex items-center gap-2"
+                        >
+                            Sign Out
+                        </Button>
+                    </Link>
                 </div>
             </nav>
         </header>
